@@ -1,0 +1,55 @@
+#!/bin/bash
+
+function echo_message { echo -e ${2} "[\033[32;1mMESSAGE\033[0m]\t${1}"; }
+function echo_warning { echo -e ${2} "[\033[93;1mWARNING\033[0m]\t${1}"; }
+function echo_error { echo -e ${2} "[\033[91;1mERROR\033[0m]\t\t${1}"; }
+
+CLEAN="FALSE"
+VERBOSE="FALSE"
+
+for VARIABLE in "${@}"; do
+    case "${VARIABLE}" in
+        --clean | -c)
+            CLEAN="TRUE"
+            ;;
+
+        --verbose | -v)
+            VERBOSE="TRUE"
+            ;;
+    esac
+done
+
+# Clean build?
+if [[ "${CLEAN}" == "TRUE" ]]; then
+    echo_message "Creating clean build environment!"
+
+    rm -r "build"
+
+    exit 0
+fi
+
+if [ ! -d "build" ]; then
+    echo_message "Creating new build Environment"
+
+    if [ "${VERBOSE}" == "FALSE" ]; then
+        meson build > /dev/null
+    else
+        meson build
+    fi
+fi
+
+echo_message "Compiling project: " -n
+
+if [ "${VERBOSE}" == "FALSE" ]; then
+    ninja -C build > /dev/null
+else
+    ninja -C build
+fi
+
+if [[ "${?}" ]]; then
+    echo -e "\033[32;1mSUCCESS!\033[0m"
+else
+    echo -e "\033[91;1mFAILED!\033[0m"
+fi
+
+exit 0
